@@ -1,0 +1,36 @@
+Copyright (c) 2017 DeNA Co., Ltd.
+
+Reference:
+@inproceedings{cao2017realtime,
+  author = {Zhe Cao and Tomas Simon and Shih-En Wei and Yaser Sheikh},
+  booktitle = {CVPR},
+  title = {Realtime Multi-Person 2D Pose Estimation using Part Affinity Fields},
+  year = {2017}
+  }
+@online{Realtime_Multi-Person_Pose_Estimation,
+  title = {Realtime_Multi-Person_Pose_Estimation},
+  url = {https://github.com/ZheC/Realtime_Multi-Person_Pose_Estimation},
+  timestamp = {2016-12-29},
+  urldate = {2017-11-08},
+ }
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+ of this software and associated documentation files (the "Software"), to deal 
+in the Software without restriction, including without limitation the rights 
+to use, copy, modify, merge, publish, distribute, and/or sublicense 
+copies of the Software, and to permit persons to whom the Software is 
+furnished to do so, subject to the following conditions:
+
+1. The above copyright notice and this permission notice shall be included in all 
+copies or substantial portions of the Software; and
+2. The use of this software is permitted solely for academic use and/or 
+non-commercial purposes.
+3. The files under the ‘data’ directory may only be viewed for reference purposes as a part of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

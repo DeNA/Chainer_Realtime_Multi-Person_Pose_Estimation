@@ -1,0 +1,13 @@
+.DS_Store
+__pycache__/
+other/
+images/
+cocoapi/
+coco/
+result/
+dataset
+result.png
+.ipynb_checkpoints
+*.caffemodel
+*.chainermodel
+*.npz
