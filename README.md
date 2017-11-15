@@ -22,10 +22,9 @@ This project is licensed under the terms of the <a href="LICENSE">license</a>.
 
 
 ## Content
-1. [Converting caffe model](#converting-caffe-model-to-chainer-model)
-2. [Testing](#testing-steps)
-3. [Training](#training-steps)
-
+1. [Converting caffe model](#convert-caffe-model-to-chainer-model)
+2. [Testing](#test-using-the-trained-model)
+3. [Training](#train-your-model-from-scratch)
 
 ## Requirements
 
