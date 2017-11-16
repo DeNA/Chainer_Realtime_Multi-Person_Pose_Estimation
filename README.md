@@ -86,15 +86,6 @@ cd ../../
 ```
 
 
-### Generate and save image masks
-Mask images are created in order to filter out people regions who were not labeled with any keypoints.
-`vis` option can be used to visualize the mask generated from each image.
-
-```
-python gen_ignore_mask.py
-```
-
-
 ### Check data generator
 Execute the following command to check randomly generated training images by generator.
 Please confirm that you can see the correct PAFs, Heatmaps, and masks on the clipped image.
