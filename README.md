@@ -54,6 +54,13 @@ The resulting image will be saved as `result.png`.
 python pose_detector.py posenet models/coco_posenet.npz --img data/person.png 
 ```
 
+
+If you have a gpu device, use the `--gpu` option.
+
+```
+python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu=0
+```
+
 <div align="center">
 <img src="data/person.png" width="300" height="300">
 &nbsp;

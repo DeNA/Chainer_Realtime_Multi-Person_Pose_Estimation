@@ -49,6 +49,12 @@ cd ..
 python pose_detector.py posenet models/coco_posenet.npz --img data/person.png 
 ```
 
+GPUを使う場合は、--gpuオプションを付ける。
+
+```
+python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu=0
+```
+
 <div align="center">
 <img src="data/person.png" width="300" height="300">
 &nbsp;
