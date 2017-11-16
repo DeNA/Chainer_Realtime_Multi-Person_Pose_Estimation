@@ -374,7 +374,7 @@ class CocoDataLoader(DatasetMixin):
         downscaled_size = int(input_size / downscale)
 
         # sample
-        joints, valid_joints, joint_bboxes, _ = self.parse_coco_annotation(img, annotations)
+        joints, valid_joints, joint_bboxes, ignore_mask = self.parse_coco_annotation(img, annotations)
         if self.mode != 'eval':
             img, ignore_mask, joints, valid_joints = self.augment_data(img, ignore_mask, joints, valid_joints, joint_bboxes, crop_size)
         resized_img, resized_mask, resized_joints = self.resize_data(img, ignore_mask, joints, resize_shape=(input_size, input_size))
@@ -443,7 +443,7 @@ if __name__ == '__main__':
     for i in range(len(data_loader)):
         img, annotations, ignore_mask, img_id = data_loader.get_img_annotation(ind=i)
         if annotations is not None:
-            joints, valid_joints, joint_bboxes, _ = data_loader.parse_coco_annotation(img, annotations)
+            joints, valid_joints, joint_bboxes, ignore_mask = data_loader.parse_coco_annotation(img, annotations)
             augmented_img, augmented_mask, joints, valid_joints = data_loader.augment_data(img, ignore_mask, joints, valid_joints, joint_bboxes, min_crop_size=480)
 
             resized_img, resized_mask, resized_joints = data_loader.resize_data(augmented_img, augmented_mask, joints, resize_shape=(368, 368))
