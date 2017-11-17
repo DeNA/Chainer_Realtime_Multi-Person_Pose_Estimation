@@ -20,7 +20,7 @@ class PoseDetector(object):
         # self.model = params['archs']['nn1']()
         # serializers.load_npz('result/nn1/model_iter_50000', self.model)
         print('Loading PoseNet...')
-        self.model = params['archs']['posenet']()
+        self.model = params['archs'][arch]()
         serializers.load_npz(weights_file, self.model)
 
         # if model is not None:
