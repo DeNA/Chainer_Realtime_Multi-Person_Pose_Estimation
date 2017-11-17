@@ -21,7 +21,7 @@ class PoseDetector(object):
         # serializers.load_npz('result/nn1/model_iter_50000', self.model)
         print('Loading PoseNet...')
         self.model = params['archs']['posenet']()
-        serializers.load_npz('models/coco_posenet.npz', self.model)
+        serializers.load_npz(weights_file, self.model)
 
         # if model is not None:
         #     self.model = model
