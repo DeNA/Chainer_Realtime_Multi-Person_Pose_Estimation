@@ -368,7 +368,7 @@ if __name__ == '__main__':
             person_pose_array = pose_detector(img, fast_mode=True)
             res_img = draw_person_pose(img, person_pose_array)
             cv2.imshow("result", res_img)
-            key = cv2.waitKey(1000)
+            key = cv2.waitKey(1)
 
             if key & 0xFF == ord('q'):
                 break
