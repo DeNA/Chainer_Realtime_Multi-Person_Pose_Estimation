@@ -28,8 +28,8 @@ This project is licensed under the terms of the <a href="LICENSE">license</a>.
 
 ## Requirements
 
-- Python 3.4+
-- Chainer 2.1+
+- Python 3.0+
+- Chainer 2.0+
 - NumPy
 - Matplotlib
 - OpenCV
