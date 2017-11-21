@@ -91,14 +91,15 @@ def draw_face_keypoints(orig_img, face_keypoints, left_top):
     return img
 
 def crop_face(img, rect):
+    orig_img_h, orig_img_w, _ = img.shape
     crop_center_x = rect[0] + rect[2] / 2
     crop_center_y = rect[1] + rect[3] / 2
     crop_width = rect[2] * params['face_crop_scale']
     crop_height = rect[3] * params['face_crop_scale']
-    crop_left = int(crop_center_x - crop_width / 2)
-    crop_top = int(crop_center_y - crop_height / 2)
-    crop_right = int(crop_center_x + crop_width / 2)
-    crop_bottom = int(crop_center_y + crop_height / 2)
+    crop_left = max(0, int(crop_center_x - crop_width / 2))
+    crop_top = max(0, int(crop_center_y - crop_height / 2))
+    crop_right = min(orig_img_w-1, int(crop_center_x + crop_width / 2))
+    crop_bottom = min(orig_img_h-1, int(crop_center_y + crop_height / 2))
     cropped_face = img[crop_top:crop_bottom, crop_left:crop_right]
     max_edge_len = np.max(cropped_face.shape[:-1])
     padded_face = np.zeros((max_edge_len, max_edge_len, cropped_face.shape[-1]), dtype=np.uint8)
