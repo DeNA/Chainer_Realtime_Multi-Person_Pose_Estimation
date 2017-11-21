@@ -42,12 +42,14 @@ Execute the following commands to download the trained model and convert it to n
 ```
 cd models
 wget http://posefs1.perception.cs.cmu.edu/Users/ZheCao/pose_iter_440000.caffemodel
+wget http://posefs1.perception.cs.cmu.edu/OpenPose/models/face/pose_iter_116000.caffemodel
 python convert_pose_model.py pose_iter_440000.caffemodel
+python convert_face_model.py pose_iter_116000.caffemodel
 cd ..
 ```
 
 ## Test using the trained model
-Execute the following command with the weight parameter file and the image file as arguments for inference.
+Execute the following command with the weight parameter file and the image file as arguments for estimating pose.
 The resulting image will be saved as `result.png`.
 
 ```
@@ -68,6 +70,22 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 </div>
 
 If the `--img` option is omitted, the real-time demonstration mode with the web camera is activated. Quit with the `q` key.
+
+
+Similarly, execute the following command for face estimation.
+The resulting image will be saved as `result.png`.
+
+```
+python face_detector.py facenet models/facenet.npz --img data/face.png 
+```
+
+
+<div align="center">
+<img src="data/face.png" width="300">
+&nbsp;
+<img src="data/face_result.png" width="300">
+</div>
+
 
 
 ## Train your model from scratch

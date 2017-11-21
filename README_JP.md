@@ -38,12 +38,14 @@ This project is licensed under the terms of the <a href="LICENSE">license</a>.
 ```
 cd models
 wget http://posefs1.perception.cs.cmu.edu/Users/ZheCao/pose_iter_440000.caffemodel
+wget http://posefs1.perception.cs.cmu.edu/OpenPose/models/face/pose_iter_116000.caffemodel
 python convert_pose_model.py pose_iter_440000.caffemodel
+python convert_face_model.py pose_iter_116000.caffemodel
 cd ..
 ```
 
 ## 推論手順
-以下のコマンドで、訓練済み重みパラメータファイルと画像を指定して推論を行う。処理結果は`result.png`という画像ファイルに保存される。
+以下のコマンドで、訓練済み重みパラメータファイルと画像を指定してポーズの推論を行う。処理結果は`result.png`という画像ファイルに保存される。
 
 ```
 python pose_detector.py posenet models/coco_posenet.npz --img data/person.png 
@@ -61,8 +63,23 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 <img src="data/person_result.png" width="300" height="300">
 </div>
 
+
 `--img` オプションを省略した場合、ウェブカメラの画像を入力として推論を行うデモモードとなる。
 `q` キーで終了する。
+
+同様に、以下のコマンドで顔のランドマークの推論を行う。こちらも処理結果は`result.png`という画像ファイルに保存される。
+
+```
+python face_detector.py facenet models/facenet.npz --img data/face.png 
+```
+
+
+<div align="center">
+<img src="data/face.png" width="300">
+&nbsp;
+<img src="data/face_result.png" width="300">
+</div>
+
 
 
 

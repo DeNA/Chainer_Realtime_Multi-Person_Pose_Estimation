@@ -111,6 +111,6 @@ params = {
 
     # face params
     'face_inference_img_size': 224,
-    'face_heatmap_peak_thresh': 0.2,
+    'face_heatmap_peak_thresh': 0.1,
     'face_crop_scale': 1.5,
 }
