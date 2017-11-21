@@ -1,6 +1,7 @@
 from enum import IntEnum
 
 from models.CocoPoseNet import CocoPoseNet
+from models.FaceNet import FaceNet
 
 
 class JointType(IntEnum):
@@ -42,11 +43,11 @@ class JointType(IntEnum):
     LeftEar = 17
     """ 左耳 """
 
-
 params = {
     'coco_dir': 'coco',
     'archs': {
         'posenet': CocoPoseNet,
+        'facenet': FaceNet,
     },
     'paf_sigma': 1.3,
     'heatmap_sigma': 1.5,
@@ -107,4 +108,9 @@ params = {
         JointType.LeftFoot,
         JointType.RightFoot
     ],
+
+    # face params
+    'face_inference_img_size': 224,
+    'face_heatmap_peak_thresh': 0.2,
+    'face_crop_scale': 1.5,
 }

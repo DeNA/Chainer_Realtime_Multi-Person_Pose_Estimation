@@ -42,7 +42,7 @@ Execute the following commands to download the trained model and convert it to n
 ```
 cd models
 wget http://posefs1.perception.cs.cmu.edu/Users/ZheCao/pose_iter_440000.caffemodel
-python convert_model.py pose_iter_440000.caffemodel
+python convert_pose_model.py pose_iter_440000.caffemodel
 cd ..
 ```
 

@@ -38,7 +38,7 @@ This project is licensed under the terms of the <a href="LICENSE">license</a>.
 ```
 cd models
 wget http://posefs1.perception.cs.cmu.edu/Users/ZheCao/pose_iter_440000.caffemodel
-python convert_model.py pose_iter_440000.caffemodel
+python convert_pose_model.py pose_iter_440000.caffemodel
 cd ..
 ```
 
