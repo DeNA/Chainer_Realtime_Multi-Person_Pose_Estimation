@@ -40,6 +40,17 @@ class FaceDetector(object):
 
         return keypoints
 
+    # compute gaussian filter
+    def create_gaussian_kernel(self, sigma=1, ksize=5):
+        center = int(ksize / 2)
+        kernel = np.zeros((1, 1, ksize, ksize), dtype=np.float32)
+        for y in range(ksize):
+            distance_y = abs(y-center)
+            for x in range(ksize):
+                distance_x = abs(x-center)
+                kernel[0][0][y][x] = 1/(sigma**2 * 2 * np.pi) * np.exp(-(distance_x**2 + distance_y**2)/(2 * sigma**2))
+        return kernel
+
     def compute_peaks_from_heatmaps(self, heatmaps):
         keypoints = []
         xp = cuda.get_array_module(heatmaps)
@@ -53,8 +64,15 @@ class FaceDetector(object):
                     keypoints.append([coords[1], coords[0], max_value]) # x, y, conf
                 else:
                     keypoints.append(None)
-        #else:
-        #    heatmaps = F.convolution_2d(heatmaps[:, None], self.gaussian_kernel, stride=1, pad=int(params['ksize']/2)).data.squeeze()
+        else:
+            heatmaps = F.convolution_2d(heatmaps[:, None], self.gaussian_kernel, stride=1, pad=int(params['ksize']/2)).data.squeeze().get()
+            for heatmap in heatmaps[:-1]:
+                max_value = heatmap.max()
+                if max_value > params['face_heatmap_peak_thresh']:
+                    coords = np.array(np.where(heatmap==max_value)).flatten().tolist()
+                    keypoints.append([coords[1], coords[0], max_value]) # x, y, conf
+                else:
+                    keypoints.append(None)
 
         return keypoints
 
