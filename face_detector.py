@@ -83,11 +83,17 @@ def draw_face_keypoints(orig_img, face_keypoints, left_top):
     for keypoint in face_keypoints:
         if keypoint:
             x, y, conf = keypoint
-            cv2.circle(img, (x + left, y + top), 3, (0, 255, 0), -1)
-            #if conf > 0.5:
-            #    cv2.circle(img, (x + left, y + top), 3, (0, 255, 0), -1)
-            #else:
-            #    cv2.circle(img, (x + left, y + top), 3, (0, 0, 255), -1)
+            cv2.circle(img, (x + left, y + top), 2, (255, 255, 0), -1)
+
+    for face_line_index in params["face_line_indices"]:
+        keypoint_from = face_keypoints[face_line_index[0]]
+        keypoint_to = face_keypoints[face_line_index[1]]
+
+        if keypoint_from and keypoint_to:
+            keypoint_from_x, keypoint_from_y, _ = keypoint_from
+            keypoint_to_x, keypoint_to_y, _ = keypoint_to
+            cv2.line(img, (keypoint_from_x + left, keypoint_from_y + top), (keypoint_to_x + left, keypoint_to_y + top), (255, 255, 0), 1)
+
     return img
 
 def crop_face(img, rect):
@@ -111,57 +117,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Face detector')
     parser.add_argument('arch', choices=params['archs'].keys(), default='facenet', help='Model architecture')
     parser.add_argument('weights', help='weights file path')
-    parser.add_argument('--img', default=None, help='image file path')
+    parser.add_argument('--img', help='image file path')
     parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
     args = parser.parse_args()
 
     # load model
     face_detector = FaceDetector(args.arch, args.weights, device=args.gpu)
-    cascade = cv2.CascadeClassifier("models/haarcascade_frontalface_alt.xml")
 
-    if args.img:
-        # read image
-        img = cv2.imread(args.img)
+    # read image
+    img = cv2.imread(args.img)
 
-        # crop face
-        gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        facerects = cascade.detectMultiScale(gray_img, scaleFactor=1.2, minNeighbors=3, minSize=(1, 1))
+    # inference
+    face_keypoints = face_detector(img)
 
-        res_img = img.copy()
-        if len(facerects) > 0:
-            for facerect in facerects:
-                cv2.rectangle(res_img, (facerect[0], facerect[1]), (facerect[0] + facerect[2], facerect[1] + facerect[3]), (255, 255, 255), 2)
-                cropped_face, face_left_top = crop_face(img, facerect)
-                face_keypoints = face_detector(cropped_face)
-                res_img = draw_face_keypoints(res_img, face_keypoints, face_left_top)
-
-        print('Saving result into result.png...')
-        cv2.imwrite('result.png', res_img)
-
-    else:
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-        while True:
-            # get video frame
-            ret, img = cap.read()
-
-            if not ret:
-                print("Failed to capture image")
-                break
-
-            # crop face
-            gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            facerects = cascade.detectMultiScale(gray_img, scaleFactor=1.2, minNeighbors=3, minSize=(1, 1))
-
-            res_img = img.copy()
-            if len(facerects) > 0:
-                for facerect in facerects:
-                    cv2.rectangle(res_img, (facerect[0], facerect[1]), (facerect[0] + facerect[2], facerect[1] + facerect[3]), (255, 255, 255), 2)
-                    cropped_face, face_left_top = crop_face(img, facerect)
-                    face_keypoints = face_detector(cropped_face)
-                    res_img = draw_face_keypoints(res_img, face_keypoints, face_left_top)
-
-            cv2.imshow("result", res_img)
-            key = cv2.waitKey(1)
+    # draw and save image
+    img = draw_face_keypoints(img, face_keypoints, (0, 0))
+    print('Saving result into result.png...')
+    cv2.imwrite('result.png', img)

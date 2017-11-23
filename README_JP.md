@@ -65,7 +65,6 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 <img src="data/person_result.png" width="300" height="300">
 </div>
 
-
 `--img` オプションを省略した場合、ウェブカメラの画像を入力として推論を行うデモモードとなる。
 `q` キーで終了する。
 
@@ -83,6 +82,17 @@ python face_detector.py facenet models/facenet.npz --img data/face.png
 </div>
 
 
+同様に、以下のコマンドで手のランドマークの推論を行う。こちらも処理結果は`result.png`という画像ファイルに保存される。
+
+```
+python hand_detector.py handnet models/handnet.npz --img data/hand.png 
+```
+
+<div align="center">
+<img src="data/hand.png" width="300">
+&nbsp;
+<img src="data/hand_result.png" width="300">
+</div>
 
 
 ## 訓練手順
