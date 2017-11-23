@@ -89,6 +89,21 @@ python face_detector.py facenet models/facenet.npz --img data/face.png
 </div>
 
 
+Similarly, execute the following command for hand estimation.
+The resulting image will be saved as `result.png`.
+
+```
+python hand_detector.py handnet models/handnet.npz --img data/hand.png 
+```
+
+<div align="center">
+<img src="data/hand.png" width="300">
+&nbsp;
+<img src="data/hand_result.png" width="300">
+</div>
+
+
+
 
 ## Train your model from scratch
 This is a full scratch training procedure using COCO 2017 dataset.

@@ -38,10 +38,6 @@ class HandDetector(object):
         heatmaps = F.resize_images(hs[-1], (hand_img_h, hand_img_w)).data[0]
         keypoints = self.compute_peaks_from_heatmaps(heatmaps)
 
-        for heatmap in heatmaps:
-            cv2.imshow("w", heatmap)
-            cv2.waitKey()
-
         return keypoints
 
     # compute gaussian filter
@@ -84,50 +80,50 @@ def draw_hand_keypoints(orig_img, hand_keypoints, left_top):
     img = orig_img.copy()
     left, top = left_top
 
-    for keypoint in hand_keypoints:
-        if keypoint:
-            x, y, conf = keypoint
-            cv2.circle(img, (x + left, y + top), 3, (0, 255, 0), -1)
-            #if conf > 0.5:
-            #    cv2.circle(img, (x + left, y + top), 3, (0, 255, 0), -1)
-            #else:
-            #    cv2.circle(img, (x + left, y + top), 3, (0, 0, 255), -1)
+    finger_colors = [
+        (0, 0, 255),
+        (0, 255, 255),
+        (0, 255, 0),
+        (255, 0, 0),
+        (255, 0, 255),
+    ]
+
+    for i, finger_indices in enumerate(params["fingers_indices"]):
+        for finger_line_index in finger_indices:
+            keypoint_from = hand_keypoints[finger_line_index[0]]
+            keypoint_to = hand_keypoints[finger_line_index[1]]
+
+            if keypoint_from:
+                keypoint_from_x, keypoint_from_y, _ = keypoint_from
+                cv2.circle(img, (keypoint_from_x + left, keypoint_from_y + top), 3, finger_colors[i], -1)
+
+            if keypoint_to:
+                keypoint_to_x, keypoint_to_y, _ = keypoint_to
+                cv2.circle(img, (keypoint_to_x + left, keypoint_to_y + top), 3, finger_colors[i], -1)
+
+            if keypoint_from and keypoint_to:
+                cv2.line(img, (keypoint_from_x + left, keypoint_from_y + top), (keypoint_to_x + left, keypoint_to_y + top), finger_colors[i], 1)
+
     return img
-
-def crop_face(img, rect):
-    orig_img_h, orig_img_w, _ = img.shape
-    crop_center_x = rect[0] + rect[2] / 2
-    crop_center_y = rect[1] + rect[3] / 2
-    crop_width = rect[2] * params['face_crop_scale']
-    crop_height = rect[3] * params['face_crop_scale']
-    crop_left = max(0, int(crop_center_x - crop_width / 2))
-    crop_top = max(0, int(crop_center_y - crop_height / 2))
-    crop_right = min(orig_img_w-1, int(crop_center_x + crop_width / 2))
-    crop_bottom = min(orig_img_h-1, int(crop_center_y + crop_height / 2))
-    cropped_face = img[crop_top:crop_bottom, crop_left:crop_right]
-    max_edge_len = np.max(cropped_face.shape[:-1])
-    padded_face = np.zeros((max_edge_len, max_edge_len, cropped_face.shape[-1]), dtype=np.uint8)
-    padded_face[0:cropped_face.shape[0], 0:cropped_face.shape[1]] = cropped_face
-
-    return padded_face, (crop_left, crop_top)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Face detector')
     parser.add_argument('arch', choices=params['archs'].keys(), default='facenet', help='Model architecture')
     parser.add_argument('weights', help='weights file path')
-    parser.add_argument('--img', default=None, help='image file path')
+    parser.add_argument('--img', help='image file path')
     parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
     args = parser.parse_args()
 
     # load model
     hand_detector = HandDetector(args.arch, args.weights, device=args.gpu)
 
-
+    # read image
     img = cv2.imread(args.img)
-    img = cv2.resize(img, (240, 240))
+
+    # inference
     hand_keypoints = hand_detector(img)
 
-    res_img = img.copy()
-    res_img = draw_hand_keypoints(res_img, hand_keypoints, (0, 0))
-    cv2.imshow("w", res_img)
-    cv2.waitKey()
+    # draw and save image
+    img = draw_hand_keypoints(img, hand_keypoints, (0, 0))
+    print('Saving result into result.png...')
+    cv2.imwrite('result.png', img)
