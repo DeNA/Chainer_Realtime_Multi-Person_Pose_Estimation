@@ -2,6 +2,7 @@ from enum import IntEnum
 
 from models.CocoPoseNet import CocoPoseNet
 from models.FaceNet import FaceNet
+from models.HandNet import HandNet
 
 
 class JointType(IntEnum):
@@ -48,6 +49,7 @@ params = {
     'archs': {
         'posenet': CocoPoseNet,
         'facenet': FaceNet,
+        'handnet': HandNet,
     },
     'paf_sigma': 1.3,
     'heatmap_sigma': 1.5,
@@ -113,4 +115,8 @@ params = {
     'face_inference_img_size': 224,
     'face_heatmap_peak_thresh': 0.1,
     'face_crop_scale': 1.5,
+
+    # hand params
+    'hand_inference_img_size': 368,
+    'hand_heatmap_peak_thresh': 0.1,
 }
