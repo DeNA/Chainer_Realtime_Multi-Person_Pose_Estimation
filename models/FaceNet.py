@@ -114,8 +114,6 @@ class FaceNet(chainer.Chain):
         h = self.Mconv7_stage2(h)
         heatmaps.append(h)
 
-        return heatmaps
-
         # stage3
         h = F.concat((h, feature_map), axis=1) # channel concat
         h = F.relu(self.Mconv1_stage3(h))

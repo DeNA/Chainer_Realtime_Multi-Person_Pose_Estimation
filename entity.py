@@ -58,7 +58,8 @@ params = {
     'downscale': 8,
 
     'inference_img_size': 368,
-    'inference_scales': [0.5, 1.0, 1.5],
+    #'inference_scales': [0.5, 1.0, 1.5],
+    'inference_scales': [1.0],
     'heatmap_size': 320,
     'gaussian_sigma': 2.5,
     'ksize': 17,
@@ -111,7 +112,7 @@ params = {
     ],
 
     # face params
-    'face_inference_img_size': 224,
+    'face_inference_img_size': 368,
     'face_heatmap_peak_thresh': 0.1,
     'face_crop_scale': 1.5,
     'face_line_indices': [

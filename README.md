@@ -18,6 +18,10 @@ The original project is <a href="https://github.com/ZheC/Realtime_Multi-Person_P
 <img src="data/people_result.png" width="300" height="300">
 </div>
 
+<p align="center">
+<img src="data/demo_result.gif" width="610">
+</p>
+
 This project is licensed under the terms of the <a href="LICENSE">license</a>.
 
 
@@ -62,7 +66,7 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png
 If you have a gpu device, use the `--gpu` option.
 
 ```
-python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu=0
+python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu 0
 ```
 
 <div align="center">
@@ -103,6 +107,18 @@ python hand_detector.py handnet models/handnet.npz --img data/hand.png
 </div>
 
 
+Similarly, you can detect all poses, faces and hands by executing the following command.
+The resulting image will be saved as `result.png`.
+
+```
+python demo.py --img data/dinner.png
+```
+
+<div align="center">
+<img src="data/dinner.png" width="340">
+&nbsp;
+<img src="data/dinner_result.png" width="340">
+</div>
 
 
 ## Train your model from scratch
@@ -140,7 +156,7 @@ python coco_data_loader.py
 For each 1000 iterations, the recent weight parameters are saved as a weight file `model_iter_1000`.
 
 ```
-python train_coco_pose_estimation.py --gpu=0
+python train_coco_pose_estimation.py --gpu 0
 ```
 
 ### Test using your own trained model
