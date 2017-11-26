@@ -25,7 +25,10 @@ class HandDetector(object):
             kernel = cuda.to_gpu(self.create_gaussian_kernel(sigma=params['gaussian_sigma'], ksize=ksize))
             self.gaussian_kernel = kernel
 
-    def __call__(self, hand_img, fast_mode=False):
+    def __call__(self, hand_img, fast_mode=False, hand_type="right"):
+        if hand_type == "left":
+            hand_img = cv2.flip(hand_img, 1)
+
         hand_img_h, hand_img_w, _ = hand_img.shape
 
         resized_image = cv2.resize(hand_img, (params["hand_inference_img_size"], params["hand_inference_img_size"]))
@@ -36,6 +39,9 @@ class HandDetector(object):
 
         hs = self.model(x_data)
         heatmaps = F.resize_images(hs[-1], (hand_img_h, hand_img_w)).data[0]
+        if hand_type == "left":
+            heatmaps = cv2.flip(heatmaps.transpose(1, 2, 0), 1).transpose(2, 0, 1)
+
         keypoints = self.compute_peaks_from_heatmaps(heatmaps)
 
         return keypoints
@@ -121,7 +127,7 @@ if __name__ == '__main__':
     img = cv2.imread(args.img)
 
     # inference
-    hand_keypoints = hand_detector(img)
+    hand_keypoints = hand_detector(img, hand_type="right")
 
     # draw and save image
     img = draw_hand_keypoints(img, hand_keypoints, (0, 0))

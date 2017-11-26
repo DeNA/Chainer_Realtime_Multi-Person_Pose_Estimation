@@ -5,15 +5,22 @@
 <a href="README.md">English README</a>
 
 ## 実行結果
+
 <p align="center">
 <img src="data/movie_result.gif" width="720">
 </p>
+
 
 <div align="center">
 <img src="data/people.png" width="300" height="300">
 &nbsp;
 <img src="data/people_result.png" width="300" height="300">
 </div>
+
+
+<p align="center">
+<img src="data/demo_result.gif" width="620">
+</p>
 
 This project is licensed under the terms of the <a href="LICENSE">license</a>.
 
@@ -56,7 +63,7 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png
 GPUを使う場合は、--gpuオプションを付ける。
 
 ```
-python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu=0
+python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu 0
 ```
 
 <div align="center">
@@ -64,9 +71,6 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 &nbsp;
 <img src="data/person_result.png" width="300" height="300">
 </div>
-
-`--img` オプションを省略した場合、ウェブカメラの画像を入力として推論を行うデモモードとなる。
-`q` キーで終了する。
 
 同様に、以下のコマンドで顔のランドマークの推論を行う。こちらも処理結果は`result.png`という画像ファイルに保存される。
 
@@ -93,6 +97,34 @@ python hand_detector.py handnet models/handnet.npz --img data/hand.png
 &nbsp;
 <img src="data/hand_result.png" width="300">
 </div>
+
+
+同様に、以下のコマンドでポーズ、顔、及び両手の全てのランドマークの推論を行う。こちらも処理結果は`result.png`という画像ファイルに保存される。
+
+```
+python demo.py --img data/dinner.png
+```
+
+<div align="center">
+<img src="data/dinner.png" width="340">
+&nbsp;
+<img src="data/dinner_result.png" width="340">
+</div>
+
+
+ウェブカメラをお使いの場合は、以下のコマンドで、カメラの画像を入力として推論を行うリアルタイムデモを実行する事ができる。`q` キーで終了する。
+
+<b>リアルタイムポーズ推定：</b>
+
+```
+python camera_pose_demo.py
+```
+
+<b>リアルタイム顔推定：</b>
+
+```
+python camera_face_demo.py
+```
 
 
 ## 訓練手順
@@ -128,7 +160,7 @@ python coco_data_loader.py
 1000イテレーションごとに、その時点の重みパラメータが `model_iter_1000` というような重みファイルに保存される。
 
 ```
-python train_coco_pose_estimation.py --gpu=0
+python train_coco_pose_estimation.py --gpu 0
 ```
 
 ### 訓練したモデルで推論

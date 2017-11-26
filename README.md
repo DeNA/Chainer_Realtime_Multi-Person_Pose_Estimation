@@ -18,6 +18,10 @@ The original project is <a href="https://github.com/ZheC/Realtime_Multi-Person_P
 <img src="data/people_result.png" width="300" height="300">
 </div>
 
+<p align="center">
+<img src="data/demo_result.gif" width="610">
+</p>
+
 This project is licensed under the terms of the <a href="LICENSE">license</a>.
 
 
@@ -62,7 +66,7 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png
 If you have a gpu device, use the `--gpu` option.
 
 ```
-python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu=0
+python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --gpu 0
 ```
 
 <div align="center">
@@ -70,8 +74,6 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 &nbsp;
 <img src="data/person_result.png" width="300" height="300">
 </div>
-
-If the `--img` option is omitted, the real-time demonstration mode with the web camera is activated. Quit with the `q` key.
 
 
 Similarly, execute the following command for face estimation.
@@ -103,6 +105,34 @@ python hand_detector.py handnet models/handnet.npz --img data/hand.png
 </div>
 
 
+Similarly, you can detect all poses, faces and hands by executing the following command.
+The resulting image will be saved as `result.png`.
+
+```
+python demo.py --img data/dinner.png
+```
+
+<div align="center">
+<img src="data/dinner.png" width="340">
+&nbsp;
+<img src="data/dinner_result.png" width="340">
+</div>
+
+
+
+If you have a web camera, you can execute the following cammand to run real-time demostration mode with the camera activated. Quit with the `q` key.
+
+<b>Real-time pose estimation:</b>
+
+```
+python camera_pose_demo.py
+```
+
+<b>Real-time face estimation:</b>
+
+```
+python camera_face_demo.py
+```
 
 
 ## Train your model from scratch
@@ -140,7 +170,7 @@ python coco_data_loader.py
 For each 1000 iterations, the recent weight parameters are saved as a weight file `model_iter_1000`.
 
 ```
-python train_coco_pose_estimation.py --gpu=0
+python train_coco_pose_estimation.py --gpu 0
 ```
 
 ### Test using your own trained model

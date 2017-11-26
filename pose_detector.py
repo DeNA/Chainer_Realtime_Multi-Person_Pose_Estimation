@@ -1,5 +1,6 @@
 import cv2
 import time
+import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -257,6 +258,168 @@ class PoseDetector(object):
         person_pose_array = np.array(person_pose_array)
         return person_pose_array
 
+    def compute_limbs_length(self, joints):
+        limbs = []
+        limbs_len = np.zeros(len(params["limbs_point"]))
+        for i, joint_indices in enumerate(params["limbs_point"]):
+            if joints[joint_indices[0]] is not None and joints[joint_indices[1]] is not None:
+                limbs.append([joints[joint_indices[0]], joints[joint_indices[1]]])
+                limbs_len[i] = np.linalg.norm(joints[joint_indices[1]][:-1] - joints[joint_indices[0]][:-1])
+            else:
+                limbs.append(None)
+
+        return limbs_len, limbs
+
+    def compute_unit_length(self, limbs_len):
+        unit_length = 0
+        base_limbs_len = limbs_len[[14, 3, 0, 13, 9]] # (鼻首、首左腰、首右腰、肩左耳、肩右耳)の長さの比率(このどれかが存在すればこれを優先的に単位長さの計算する)
+        non_zero_limbs_len = base_limbs_len > 0
+        if len(np.nonzero(non_zero_limbs_len)[0]) > 0:
+            limbs_len_ratio = np.array([0.85, 2.2, 2.2, 0.85, 0.85]) 
+            unit_length = np.sum(base_limbs_len[non_zero_limbs_len] / limbs_len_ratio[non_zero_limbs_len]) / len(np.nonzero(non_zero_limbs_len)[0])
+        else:
+            limbs_len_ratio = np.array([2.2, 1.7, 1.7, 2.2, 1.7, 1.7, 0.6, 0.93, 0.65, 0.85, 0.6, 0.93, 0.65, 0.85, 1, 0.2, 0.2, 0.25, 0.25])
+            non_zero_limbs_len = limbs_len > 0
+            unit_length = np.sum(limbs_len[non_zero_limbs_len] / limbs_len_ratio[non_zero_limbs_len]) / len(np.nonzero(non_zero_limbs_len)[0])
+
+        return unit_length
+
+    def get_unit_length(self, person_pose):
+        limbs_length, limbs = self.compute_limbs_length(person_pose)
+        unit_length = self.compute_unit_length(limbs_length)
+
+        return unit_length
+
+    def crop_around_keypoint(self, img, keypoint, crop_size):
+        x, y = keypoint
+        left = int(x - crop_size)
+        top = int(y - crop_size)
+        right = int(x + crop_size)
+        bottom = int(y + crop_size)
+        bbox = (left, top, right, bottom)
+
+        cropped_img = self.crop_image(img, bbox)
+
+        return cropped_img, bbox
+
+    def crop_person(self, img, person_pose, unit_length):
+        top_joint_priority = [4, 5, 6, 12, 16, 7, 13, 17, 8, 10, 14, 9, 11, 15, 2, 3, 0, 1, sys.maxsize]
+        bottom_joint_priority = [9, 6, 7, 14, 16, 8, 15, 17, 4, 2, 0, 5, 3, 1, 10, 11, 12, 13, sys.maxsize]
+
+        top_joint_index = len(top_joint_priority) - 1
+        bottom_joint_index = len(bottom_joint_priority) - 1
+        left_joint_index = 0
+        right_joint_index = 0
+        top_pos = sys.maxsize
+        bottom_pos = 0
+        left_pos = sys.maxsize
+        right_pos = 0
+
+        for i, joint in enumerate(person_pose):
+            if joint[2] > 0:
+                if top_joint_priority[i] < top_joint_priority[top_joint_index]:
+                    top_joint_index = i
+                elif bottom_joint_priority[i] < bottom_joint_priority[bottom_joint_index]:
+                    bottom_joint_index = i
+                if joint[1] < top_pos:
+                    top_pos = joint[1]
+                elif joint[1] > bottom_pos:
+                    bottom_pos = joint[1]
+
+                if joint[0] < left_pos:
+                    left_pos = joint[0]
+                    left_joint_index = i
+                elif joint[0] > right_pos:
+                    right_pos = joint[0]
+                    right_joint_index = i
+
+        top_padding_radio = [0.9, 1.9, 1.9, 2.9, 3.7, 1.9, 2.9, 3.7, 4.0, 5.5, 7.0, 4.0, 5.5, 7.0, 0.7, 0.8, 0.7, 0.8] 
+        bottom_padding_radio = [6.9, 5.9, 5.9, 4.9, 4.1, 5.9, 4.9, 4.1, 3.8, 2.3, 0.8, 3.8, 2.3, 0.8, 7.1, 7.0, 7.1, 7.0]
+
+        left = (left_pos - 0.3 * unit_length).astype(int)
+        right = (right_pos + 0.3 * unit_length).astype(int)
+        top = (top_pos - top_padding_radio[top_joint_index] * unit_length).astype(int)
+        bottom = (bottom_pos + bottom_padding_radio[bottom_joint_index] * unit_length).astype(int)
+        bbox = (left, top, right, bottom)
+
+        cropped_img = self.crop_image(img, bbox)
+        return cropped_img, bbox
+
+
+    def crop_face(self, img, person_pose, unit_length):
+        face_size = unit_length
+        face_img = None
+        bbox = None
+
+        # if have nose
+        if person_pose[JointType.Nose][2] > 0:
+            nose_pos = person_pose[JointType.Nose][:2]
+            face_top = int(nose_pos[1] - face_size * 1.2)
+            face_bottom = int(nose_pos[1] + face_size * 0.8)
+            face_left = int(nose_pos[0] - face_size)
+            face_right = int(nose_pos[0] + face_size)
+            bbox = (face_left, face_top, face_right, face_bottom)
+            face_img = self.crop_image(img, bbox)
+
+        return face_img, bbox
+
+
+    def crop_hands(self, img, person_pose, unit_length):
+        hands = {
+            "left": None,
+            "right": None
+        }
+
+        if person_pose[JointType.LeftHand][2] > 0:
+            crop_center = person_pose[JointType.LeftHand][:-1]
+            if person_pose[JointType.LeftElbow][2] > 0:
+                direction_vec = person_pose[JointType.LeftHand][:-1] - person_pose[JointType.LeftElbow][:-1]
+                crop_center += (0.3 * direction_vec).astype(crop_center.dtype)
+            hand_img, bbox = self.crop_around_keypoint(img, crop_center, unit_length * 0.95)
+            hands["left"] = {
+                "img": hand_img,
+                "bbox": bbox
+            }
+
+        if person_pose[JointType.RightHand][2] > 0:
+            crop_center = person_pose[JointType.RightHand][:-1]
+            if person_pose[JointType.RightElbow][2] > 0:
+                direction_vec = person_pose[JointType.RightHand][:-1] - person_pose[JointType.RightElbow][:-1]
+                crop_center += (0.3 * direction_vec).astype(crop_center.dtype)
+            hand_img, bbox = self.crop_around_keypoint(img, crop_center, unit_length * 0.95)
+            hands["right"] = {
+                "img": hand_img,
+                "bbox": bbox
+            }
+
+        return hands
+
+    def crop_image(self, img, bbox):
+        left, top, right, bottom = bbox
+        img_h, img_w, img_ch = img.shape
+        box_h = bottom - top
+        box_w = right - left
+
+        crop_left = max(0, left)
+        crop_top = max(0, top)
+        crop_right = min(img_w, right)
+        crop_bottom = min(img_h, bottom)
+        crop_h = crop_bottom - crop_top
+        crop_w = crop_right - crop_left
+        cropped_img = img[crop_top:crop_bottom, crop_left:crop_right]
+
+        bias_x = bias_y = 0
+        if left < crop_left:
+            bias_x = crop_left - left
+        if top < crop_top:
+            bias_y = crop_top - top
+
+        # pad
+        padded_img = np.zeros((box_h, box_w, img_ch), dtype=np.uint8)
+        padded_img[bias_y:bias_y+crop_h, bias_x:bias_x+crop_w] = cropped_img
+
+        return padded_img
+
     def __call__(self, orig_img, fast_mode=False):
         orig_img_h, orig_img_w, _ = orig_img.shape
 
@@ -265,7 +428,7 @@ class PoseDetector(object):
         pafs_sum = 0
         heatmaps_sum = 0
         # use only the first scale on fast mode
-        scales = [params['inference_scales'][0]] if fast_mode else params['inference_scales']
+        scales = [0.5] if fast_mode else params['inference_scales']
 
         for scale in scales:
             print("Inference scale: %.1f..." % (scale))
@@ -299,7 +462,6 @@ class PoseDetector(object):
         all_peaks_flatten[:, 1] *= orig_img_h / resized_output_img_h
         person_pose_array = self.subsets_to_person_pose_array(subsets, all_peaks_flatten)
         return person_pose_array
-
 
 def draw_person_pose(oriImg, person_pose):
     if len(person_pose) == 0:
@@ -340,35 +502,20 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pose detector')
     parser.add_argument('arch', choices=params['archs'].keys(), default='posenet', help='Model architecture')
     parser.add_argument('weights', help='weights file path')
-    parser.add_argument('--img', default=None, help='image file path')
+    parser.add_argument('--img', help='image file path')
     parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
     args = parser.parse_args()
 
+    # load model
     pose_detector = PoseDetector(args.arch, args.weights, device=args.gpu)
 
-    if args.img:
-        img = cv2.imread(args.img)
-        person_pose_array = pose_detector(img)
-        res_img = draw_person_pose(img, person_pose_array)
-        print('Saving result into result.png...')
-        cv2.imwrite('result.png', res_img)
-    else:
-        cap = cv2.VideoCapture(0)
-        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+    # read image
+    img = cv2.imread(args.img)
 
-        while True:
-            # get video frame
-            ret, img = cap.read()
+    # inference
+    person_pose_array = pose_detector(img)
 
-            if not ret:
-                print("Failed to capture image")
-                break
-
-            person_pose_array = pose_detector(img, fast_mode=True)
-            res_img = draw_person_pose(img, person_pose_array)
-            cv2.imshow("result", res_img)
-            key = cv2.waitKey(1)
-
-            if key & 0xFF == ord('q'):
-                break
+    # draw and save image
+    img = draw_person_pose(img, person_pose_array)
+    print('Saving result into result.png...')
+    cv2.imwrite('result.png', img)
