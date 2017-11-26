@@ -72,9 +72,6 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 <img src="data/person_result.png" width="300" height="300">
 </div>
 
-`--img` オプションを省略した場合、ウェブカメラの画像を入力として推論を行うデモモードとなる。
-`q` キーで終了する。
-
 同様に、以下のコマンドで顔のランドマークの推論を行う。こちらも処理結果は`result.png`という画像ファイルに保存される。
 
 ```
@@ -113,6 +110,21 @@ python demo.py --img data/dinner.png
 &nbsp;
 <img src="data/dinner_result.png" width="340">
 </div>
+
+
+ウェブカメラをお使いの場合は、以下のコマンドで、カメラの画像を入力として推論を行うリアルタイムデモを実行する事ができる。`q` キーで終了する。
+
+<b>リアルタイムポーズ推定：</b>
+
+```
+python camera_pose_demo.py
+```
+
+<b>リアルタイム顔推定：</b>
+
+```
+python camera_face_demo.py
+```
 
 
 ## 訓練手順

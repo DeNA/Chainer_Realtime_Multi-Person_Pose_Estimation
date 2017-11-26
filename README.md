@@ -75,8 +75,6 @@ python pose_detector.py posenet models/coco_posenet.npz --img data/person.png --
 <img src="data/person_result.png" width="300" height="300">
 </div>
 
-If the `--img` option is omitted, the real-time demonstration mode with the web camera is activated. Quit with the `q` key.
-
 
 Similarly, execute the following command for face estimation.
 The resulting image will be saved as `result.png`.
@@ -119,6 +117,22 @@ python demo.py --img data/dinner.png
 &nbsp;
 <img src="data/dinner_result.png" width="340">
 </div>
+
+
+
+If you have a web camera, you can execute the following cammand to run real-time demostration mode with the camera activated. Quit with the `q` key.
+
+<b>Real-time pose estimation:</b>
+
+```
+python camera_pose_demo.py
+```
+
+<b>Real-time face estimation:</b>
+
+```
+python camera_face_demo.py
+```
 
 
 ## Train your model from scratch

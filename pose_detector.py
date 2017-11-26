@@ -430,7 +430,7 @@ class PoseDetector(object):
         pafs_sum = 0
         heatmaps_sum = 0
         # use only the first scale on fast mode
-        scales = [params['inference_scales'][0]] if fast_mode else params['inference_scales']
+        scales = [0.5] if fast_mode else params['inference_scales']
 
         for scale in scales:
             print("Inference scale: %.1f..." % (scale))

@@ -1,12 +1,7 @@
 import cv2
 import argparse
-from entity import params
 import chainer
-
-from models.CocoPoseNet import CocoPoseNet
-from models.FaceNet import FaceNet
-from models.HandNet import HandNet
-
+from entity import params
 from pose_detector import PoseDetector, draw_person_pose
 from face_detector import FaceDetector, draw_face_keypoints
 from hand_detector import HandDetector, draw_hand_keypoints
