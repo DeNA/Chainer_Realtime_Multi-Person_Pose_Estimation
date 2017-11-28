@@ -20,6 +20,8 @@ from entity import JointType, params
 from coco_data_loader import CocoDataLoader
 from pose_detector import PoseDetector, draw_person_pose
 
+from models import CocoPoseNet
+
 
 def compute_loss(pafs_ys, heatmaps_ys, pafs_t, heatmaps_t, ignore_mask):
     heatmaps_loss_log = []
@@ -46,6 +48,15 @@ def compute_loss(pafs_ys, heatmaps_ys, pafs_t, heatmaps_t, ignore_mask):
     return total_loss, pafs_loss_log, heatmaps_loss_log
 
 
+def preprocess(imgs):
+    xp = cuda.get_array_module(imgs)
+    x_data = imgs.astype('f')
+    x_data /= 255
+    x_data -= 0.5
+    x_data = x_data.transpose(0, 3, 1, 2)
+    return x_data
+
+
 class Updater(StandardUpdater):
 
     def __init__(self, iterator, model, optimizer, device=None):
@@ -59,7 +70,7 @@ class Updater(StandardUpdater):
         batch = train_iter.next()
         imgs, pafs, heatmaps, ignore_mask = self.converter(batch, self.device)
 
-        x_data = imgs.astype(np.float32).transpose(0, 3, 1, 2) / 256 - 0.5
+        x_data = preprocess(imgs)
 
         inferenced_pafs, inferenced_heatmaps = optimizer.target(x_data)
 
@@ -96,7 +107,8 @@ class Evaluator(extensions.Evaluator):
             with reporter.report_scope(observation):
                 imgs, pafs, heatmaps, ignore_mask = self.converter(batch, self.device)
                 with function.no_backprop_mode():
-                    x_data = imgs.astype(np.float32).transpose(0, 3, 1, 2) / 256 - 0.5
+
+                    x_data = preprocess(imgs)
 
                     inferenced_pafs, inferenced_heatmaps = model(x_data)
 
@@ -117,7 +129,7 @@ def parse_args():
                         help='Validation minibatch size')
     parser.add_argument('--val_samples', type=int, default=100,
                         help='Number of validation samples')
-    parser.add_argument('--iteration', '-i', type=int, default=30000,
+    parser.add_argument('--iteration', '-i', type=int, default=600000,
                         help='Number of iterations to train')
     parser.add_argument('--gpu', '-g', type=int, default=-1,
                         help='GPU ID (negative value indicates CPU')
@@ -139,6 +151,9 @@ if __name__ == '__main__':
     args = parse_args()
 
     model = params['archs'][args.arch]()
+    if args.arch == 'posenet':
+        CocoPoseNet.copy_vgg_params(model)
+
     if args.initmodel:
         print('Load model from', args.initmodel)
         chainer.serializers.load_npz(args.initmodel, model)
@@ -180,7 +195,7 @@ if __name__ == '__main__':
         model, 'model_iter_{.updater.iteration}'), trigger=val_interval)
     trainer.extend(extensions.LogReport(trigger=log_interval))
     trainer.extend(extensions.PrintReport([
-        'epoch', 'iteration', 'main/loss', 'val/loss', 'AP',
+        'epoch', 'iteration', 'main/loss', 'val/loss',
     ]), trigger=log_interval)
     trainer.extend(extensions.ProgressBar(update_interval=1))
 
