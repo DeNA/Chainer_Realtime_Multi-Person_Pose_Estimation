@@ -135,7 +135,7 @@ python camera_face_demo.py
 ```
 
 
-## Train your model from scratch
+## Train your model
 This is a full scratch training procedure using COCO 2017 dataset.
 
 
@@ -157,6 +157,19 @@ python setup.py install
 cd ../../
 ```
 
+### Download VGG-19 pretrained model
+
+```
+wget -P models http://www.robots.ox.ac.uk/%7Evgg/software/very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel
+```
+
+### Generate and save image masks
+Mask images are created in order to filter out people regions who were not labeled with any keypoints.
+`vis` option can be used to visualize the mask generated from each image.
+
+```
+python gen_ignore_mask.py
+```
 
 ### Check data generator
 Execute the following command to check randomly generated training images by generator.
