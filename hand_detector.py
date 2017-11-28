@@ -39,6 +39,10 @@ class HandDetector(object):
 
         hs = self.model(x_data)
         heatmaps = F.resize_images(hs[-1], (hand_img_h, hand_img_w)).data[0]
+
+        if self.device >= 0:
+            heatmaps = heatmaps.get()
+
         if hand_type == "left":
             heatmaps = cv2.flip(heatmaps.transpose(1, 2, 0), 1).transpose(2, 0, 1)
 
