@@ -128,7 +128,7 @@ python camera_face_demo.py
 
 
 ## 訓練手順
-COCO 2017を使ったフルスクラッチでの訓練手順
+COCO 2017を使った訓練手順
 
 ### COCO 2017のデータをダウンロード
 
@@ -147,6 +147,18 @@ python setup.py install
 cd ../../
 ```
 
+### VGG-19訓練済みモデルのダウンロード
+
+```
+wget -P models http://www.robots.ox.ac.uk/%7Evgg/software/very_deep/caffe/VGG_ILSVRC_19_layers.caffemodel
+```
+
+### マスク画像の保存
+学習の際、関節点ラベルの存在しない人物に誤差を与えないためのマスク画像の計算・保存を行う。また、`vis`オプションを付加することで、各画像のアノテーション、生成されたマスクが可視化できる。
+
+```
+python gen_ignore_mask.py
+```
 
 ### data generatorの確認
 以下のコマンドで、generatorを使ってランダム生成された訓練用画像を確認できる。切り出し画像に対して正解のPAFとHeatmap及びmaskを被せた状態で表示される。
