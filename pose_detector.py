@@ -1,6 +1,5 @@
 import cv2
 import time
-import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -17,21 +16,14 @@ chainer.using_config('enable_backprop', False)
 
 class PoseDetector(object):
     def __init__(self, arch=None, weights_file=None, model=None, device=-1):
-        # test
-        # self.model = params['archs']['nn1']()
-        # serializers.load_npz('result/nn1/model_iter_50000', self.model)
-        print('Loading PoseNet...')
-        self.model = params['archs'][arch]()
-        serializers.load_npz(weights_file, self.model)
-
-        # if model is not None:
-        #     self.model = model
-        # else:
-        #     # load model
-        #     print('Loading PoseNet...')
-        #     self.model = params['archs'][arch]()
-        #     if weights_file:
-        #         serializers.load_npz(weights_file, self.model)
+        if model is not None:
+            self.model = model
+        else:
+            # load model
+            print('Loading PoseNet...')
+            self.model = params['archs'][arch]()
+            if weights_file:
+                serializers.load_npz(weights_file, self.model)
 
         self.device = device
         if self.device >= 0:
@@ -73,14 +65,15 @@ class PoseDetector(object):
         return (img_w, img_h)
 
     def compute_peaks_from_heatmaps(self, heatmaps):
-        peak_counter = 0
-        all_peaks = []
+        heatmaps = heatmaps[:-1]
 
         xp = cuda.get_array_module(heatmaps)
 
         if xp == np:
-            for i in range(heatmaps.shape[0] - 1):
-                heatmap = gaussian_filter(heatmaps[i], sigma=params['gaussian_sigma'])
+            all_peaks = []
+            peak_counter = 0
+            for i , heatmap in enumerate(heatmaps):
+                heatmap = gaussian_filter(heatmap, sigma=params['gaussian_sigma'])
                 map_left = xp.zeros(heatmap.shape)
                 map_right = xp.zeros(heatmap.shape)
                 map_top = xp.zeros(heatmap.shape)
@@ -92,11 +85,12 @@ class PoseDetector(object):
 
                 peaks_binary = xp.logical_and.reduce((heatmap >= map_left, heatmap >= map_right, heatmap >= map_top, heatmap >= map_bottom, heatmap > params['heatmap_peak_thresh']))
                 peaks = zip(xp.nonzero(peaks_binary)[1], xp.nonzero(peaks_binary)[0]) # [(x, y), (x, y)...]のpeak座標配列
-                peaks_with_score = [peak_pos + (heatmap[peak_pos[1], peak_pos[0]],) for peak_pos in peaks] # [(x, y, score), (x, y, score)...]のpeak配列 scoreはheatmap上のscore
+                peaks_with_score = [(i,) + peak_pos + (heatmap[peak_pos[1], peak_pos[0]],) for peak_pos in peaks] # [(x, y, score), (x, y, score)...]のpeak配列 scoreはheatmap上のscore
                 peaks_id = range(peak_counter, peak_counter + len(peaks_with_score))
                 peaks_with_score_and_id = [peaks_with_score[i] + (peaks_id[i], ) for i in range(len(peaks_id))] # [(x, y, score, id), (x, y, score, id)...]のpeak配列
                 peak_counter += len(peaks_with_score_and_id)
                 all_peaks.append(peaks_with_score_and_id)
+            all_peaks = np.array([peak for peaks_each_category in all_peaks for peak in peaks_each_category])
         else:
             heatmaps = F.convolution_2d(heatmaps[:, None], self.gaussian_kernel, stride=1, pad=int(params['ksize']/2)).data.squeeze()
             left_heatmaps = xp.zeros(heatmaps.shape)
@@ -113,14 +107,11 @@ class PoseDetector(object):
             peaks_binary = xp.logical_and(peaks_binary, heatmaps >= bottom_heatmaps)
             peaks_binary = xp.logical_and(peaks_binary, heatmaps >= params['heatmap_peak_thresh'])
 
-            for ch, peaks_binary_per_ch in enumerate(peaks_binary[:-1]):
-                heatmap = heatmaps[ch]
-                peaks = zip(xp.nonzero(peaks_binary_per_ch)[1], xp.nonzero(peaks_binary_per_ch)[0])
-                peaks_with_score = [peak_pos + (heatmap[peak_pos[1], peak_pos[0]],) for peak_pos in peaks] # [(x, y, score), (x, y, score)...]のpeak配列 scoreはheatmap上のscore
-                peaks_id = range(peak_counter, peak_counter + len(peaks_with_score))
-                peaks_with_score_and_id = np.array([peaks_with_score[i] + (peaks_id[i],) for i in range(len(peaks_id))], dtype=np.float32) # [(x, y, score, id), (x, y, score, id)...]のpeak配列
-                peak_counter += len(peaks_with_score_and_id)
-                all_peaks.append(peaks_with_score_and_id)
+            peak_c, peak_y, peak_x = xp.nonzero(peaks_binary)
+            peak_score = heatmaps[peak_c, peak_y, peak_x]
+            all_peaks = xp.vstack((peak_c, peak_x, peak_y, peak_score)).transpose()
+            all_peaks = xp.hstack((all_peaks, xp.arange(len(all_peaks)).reshape(-1, 1)))
+            all_peaks = all_peaks.get()
         return all_peaks
 
     def extract_paf_in_points(self, paf, points):
@@ -162,14 +153,14 @@ class PoseDetector(object):
         candidate_connections = sorted(candidate_connections, key=lambda x: x[2], reverse=True)
         return candidate_connections
 
-    def compute_connections(self, pafs, all_peaks, all_peaks_flatten, img_len, params):
+    def compute_connections(self, pafs, all_peaks, img_len, params):
         all_connections = []
         for i in range(len(params['limbs_point'])):
             paf_index = [i * 2, i * 2 + 1]
             paf = pafs[paf_index]
             limb_point = params['limbs_point'][i]
-            cand_a = all_peaks[limb_point[0]]
-            cand_b = all_peaks[limb_point[1]]
+            cand_a = all_peaks[all_peaks[:, 0] == limb_point[0]][:, 1:]
+            cand_b = all_peaks[all_peaks[:, 0] == limb_point[1]][:, 1:]
 
             if len(cand_a) > 0 and len(cand_b) > 0:
                 candidate_connections = self.compute_candidate_connections_greedy(paf, cand_a, cand_b, img_len, params)
@@ -211,7 +202,7 @@ class PoseDetector(object):
                         found_subset[joint_category_b_index] = joint_b_indices[connection_index]
                         found_subset[-1] += 1 # increment joint count
                         # joint bのscoreとconnectionの積分値を加算
-                        found_subset[-2] += candidate_peaks[joint_b_indices[connection_index].astype(int), 2] + all_connections[connection_category_index][connection_index][2]
+                        found_subset[-2] += candidate_peaks[joint_b_indices[connection_index].astype(int), 3] + all_connections[connection_category_index][connection_index][2]
 
                 elif joint_found_cnt == 2: # subset1にjoint1が、subset2にjoint2がある場合(肩->耳のconnectionの組合せした起こり得ない)
                     found_subset_1 = subsets[joint_found_subset_index[0]]
@@ -227,7 +218,7 @@ class PoseDetector(object):
                         pass
                         # found_subset_1[joint_category_b_index] = joint_b_indices[connection_index]
                         # found_subset_1[-1] += 1 # increment joint count
-                        # found_subset_1[-2] += candidate_peaks[joint_b_indices[connection_index].astype(int), 2] + all_connections[connection_category_index][connection_index][2]
+                        # found_subset_1[-2] += candidate_peaks[joint_b_indices[connection_index].astype(int), 3] + all_connections[connection_category_index][connection_index][2]
                         # joint bのscoreとconnectionの積分値を加算
 
                 elif joint_found_cnt == 0 and connection_category_index < 17: # 肩耳のconnectionは新規group対象外
@@ -235,7 +226,7 @@ class PoseDetector(object):
                     row[joint_category_a_index] = joint_a_indices[connection_index]
                     row[joint_category_b_index] = joint_b_indices[connection_index]
                     row[-1] = 2
-                    row[-2] = sum(candidate_peaks[all_connections[connection_category_index][connection_index, :2].astype(int), 2]) + all_connections[connection_category_index][connection_index][2]
+                    row[-2] = sum(candidate_peaks[all_connections[connection_category_index][connection_index, :2].astype(int), 3]) + all_connections[connection_category_index][connection_index][2]
                     subsets = np.vstack([subsets, row])
 
         # delete low score subsets
@@ -243,13 +234,13 @@ class PoseDetector(object):
         subsets = subsets[keep]
         return subsets
 
-    def subsets_to_person_pose_array(self, subsets, all_peaks_flatten):
+    def subsets_to_person_pose_array(self, subsets, all_peaks):
         person_pose_array = []
         for subset in subsets:
             joints = []
             for joint_index in subset[:18].astype('i'):
                 if joint_index >= 0:
-                    joint = all_peaks_flatten[joint_index][:2].astype('i').tolist()
+                    joint = all_peaks[joint_index][1:3].astype('i').tolist()
                     joint.append(2)
                     joints.append(joint)
                 else:
@@ -450,18 +441,18 @@ class PoseDetector(object):
         heatmaps = heatmaps_sum / len(scales)
 
         if self.device >= 0:
-            pafs = cuda.to_cpu(pafs)
+            pafs = pafs.get()
 
         all_peaks = self.compute_peaks_from_heatmaps(heatmaps)
-        all_peaks_flatten = np.array([peak for peaks_each_category in all_peaks for peak in peaks_each_category])
-        if len(all_peaks_flatten) == 0:
+        if len(all_peaks) == 0:
             return np.empty((0, len(JointType), 3))
-        all_connections = self.compute_connections(pafs, all_peaks, all_peaks_flatten, resized_output_img_w, params)
-        subsets = self.grouping_key_points(all_connections, all_peaks_flatten, params)
-        all_peaks_flatten[:, 0] *= orig_img_w / resized_output_img_w
-        all_peaks_flatten[:, 1] *= orig_img_h / resized_output_img_h
-        person_pose_array = self.subsets_to_person_pose_array(subsets, all_peaks_flatten)
+        all_connections = self.compute_connections(pafs, all_peaks, resized_output_img_w, params)
+        subsets = self.grouping_key_points(all_connections, all_peaks, params)
+        all_peaks[:, 1] *= orig_img_w / resized_output_img_w
+        all_peaks[:, 2] *= orig_img_h / resized_output_img_h
+        person_pose_array = self.subsets_to_person_pose_array(subsets, all_peaks)
         return person_pose_array
+
 
 def draw_person_pose(oriImg, person_pose):
     if len(person_pose) == 0:
@@ -502,7 +493,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pose detector')
     parser.add_argument('arch', choices=params['archs'].keys(), default='posenet', help='Model architecture')
     parser.add_argument('weights', help='weights file path')
-    parser.add_argument('--img', help='image file path')
+    parser.add_argument('--img', '-i', default=None, help='image file path')
     parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
     args = parser.parse_args()
 
