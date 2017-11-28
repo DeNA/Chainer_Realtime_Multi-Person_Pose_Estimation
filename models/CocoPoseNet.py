@@ -1,6 +1,20 @@
 import chainer
 import chainer.functions as F
 import chainer.links as L
+from chainer.links import caffe
+
+
+def copy_vgg_params(model):
+    print('Copying params of pretrained model...')
+    layer_names = [
+        "conv1_1", "conv1_2", "conv2_1", "conv2_2", "conv3_1",
+        "conv3_2", "conv3_3", "conv3_4", "conv4_1", "conv4_2",
+    ]
+    pre_model = caffe.CaffeFunction('models/VGG_ILSVRC_19_layers.caffemodel')
+    for layer_name in layer_names:
+        exec("model.%s.W.data = pre_model['%s'].W.data" % (layer_name, layer_name))
+        exec("model.%s.b.data = pre_model['%s'].b.data" % (layer_name, layer_name))
+    print('Done.')
 
 
 class CocoPoseNet(chainer.Chain):

@@ -273,8 +273,8 @@ class CocoDataLoader(DatasetMixin):
                     heatmap[jointmap > heatmap] = jointmap[jointmap > heatmap]
                     sum_heatmap[jointmap > sum_heatmap] = jointmap[jointmap > sum_heatmap]
             heatmaps = np.vstack((heatmaps, heatmap.reshape((1,) + heatmap.shape)))
-        heatmaps = np.vstack((heatmaps, sum_heatmap.reshape((1,) + sum_heatmap.shape)))
-
+        bg_heatmap = 1 - sum_heatmap  # background channel
+        heatmaps = np.vstack((heatmaps, bg_heatmap[None]))
         return heatmaps.astype('f')
 
     def compute_pafs(self, img, joints, valid_joints, paf_sigma):
@@ -374,7 +374,7 @@ class CocoDataLoader(DatasetMixin):
         downscaled_size = int(input_size / downscale)
 
         # sample
-        joints, valid_joints, joint_bboxes, ignore_mask = self.parse_coco_annotation(img, annotations)
+        joints, valid_joints, joint_bboxes, _ = self.parse_coco_annotation(img, annotations)
         if self.mode != 'eval':
             img, ignore_mask, joints, valid_joints = self.augment_data(img, ignore_mask, joints, valid_joints, joint_bboxes, crop_size)
         resized_img, resized_mask, resized_joints = self.resize_data(img, ignore_mask, joints, resize_shape=(input_size, input_size))
@@ -399,7 +399,7 @@ class CocoDataLoader(DatasetMixin):
             valid_annotations_for_img = []
             for annotation in annotations_for_img:
                 # if too few keypoints or too small
-                if annotation['num_keypoints'] >= 5 and annotation['area'] > 64 * 64:
+                if annotation['num_keypoints'] >= 5 and annotation['area'] > 48 * 48:
                     person_cnt += 1
                     valid_annotations_for_img.append(annotation)
 
@@ -443,7 +443,7 @@ if __name__ == '__main__':
     for i in range(len(data_loader)):
         img, annotations, ignore_mask, img_id = data_loader.get_img_annotation(ind=i)
         if annotations is not None:
-            joints, valid_joints, joint_bboxes, ignore_mask = data_loader.parse_coco_annotation(img, annotations)
+            joints, valid_joints, joint_bboxes, _ = data_loader.parse_coco_annotation(img, annotations)
             augmented_img, augmented_mask, joints, valid_joints = data_loader.augment_data(img, ignore_mask, joints, valid_joints, joint_bboxes, min_crop_size=480)
 
             resized_img, resized_mask, resized_joints = data_loader.resize_data(augmented_img, augmented_mask, joints, resize_shape=(368, 368))
@@ -460,7 +460,7 @@ if __name__ == '__main__':
 
             # view
             img = resized_img.copy()
-            img = data_loader.overlay_heatmap(img, heatmaps[-1])
+            img = data_loader.overlay_heatmap(img, heatmaps[:-1].max(axis=0))
             img = data_loader.overlay_pafs(img, pafs)
             img = data_loader.overlay_ignore_mask(img, ignore_mask)
 

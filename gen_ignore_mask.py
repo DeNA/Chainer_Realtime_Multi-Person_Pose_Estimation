@@ -8,15 +8,13 @@ from pycocotools.coco import COCO
 
 from entity import params
 
-from tqdm import tqdm
-
 
 class CocoDataLoader(object):
     def __init__(self, coco, mode='train'):
         self.coco = coco
         assert mode in ['train', 'val'], 'Data loading mode is invalid.'
         self.mode = mode
-        self.catIds = coco.getCatIds()  # catNms=['person'
+        self.catIds = coco.getCatIds()  # catNms=['person']
         self.imgIds = sorted(coco.getImgIds(catIds=self.catIds))
 
     def __len__(self):
@@ -31,7 +29,7 @@ class CocoDataLoader(object):
                 intxn = mask_all & mask
                 mask_miss = mask_miss | (mask - intxn)
                 mask_all = mask_all | mask
-            elif ann['num_keypoints'] == 0:
+            elif ann['num_keypoints'] < 5 or ann['area'] <= 48 * 48:
                 mask_all = mask_all | mask
                 mask_miss = mask_miss | mask
             else:
@@ -98,7 +96,7 @@ if __name__ == '__main__':
         if not os.path.exists(save_dir):
             os.makedirs(save_dir)
 
-        for i in tqdm(range(len(data_loader))):
+        for i in range(len(data_loader)):
             img, annotations, img_id = data_loader.get_img_annotation(ind=i)
             mask_all, mask_miss = data_loader.gen_masks(img, annotations)
 
