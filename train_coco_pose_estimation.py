@@ -6,6 +6,7 @@ import glob
 import random
 import argparse
 import numpy as np
+import multiprocessing
 import matplotlib.pyplot as plt
 
 from pycocotools.coco import COCO
@@ -169,6 +170,7 @@ if __name__ == '__main__':
 
     # These iterators load the images with subprocesses running in parallel to
     # the training/validation.
+    multiprocessing.set_start_method('spawn')  # to avoid MultiprocessIterator's bug
     train_iter = chainer.iterators.MultiprocessIterator(
         train_loader, args.batchsize, n_processes=args.loaderjob)
     val_iter = chainer.iterators.MultiprocessIterator(
