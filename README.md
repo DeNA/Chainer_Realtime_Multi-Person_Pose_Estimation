@@ -39,7 +39,7 @@ This project is licensed under the terms of the <a href="LICENSE">license</a>.
 - OpenCV
 
 ## Convert Caffe model to Chainer model
-The authors of [the original implementation](https://github.com/ZheC/Realtime_Multi-Person_Pose_Estimation) provide trained caffe model 
+The authors of [the original implementation](https://github.com/ZheC/Realtime_Multi-Person_Pose_Estimation) provide trained caffe model
 which you can use to extract model weights.
 Execute the following commands to download the trained model and convert it to npz file:
 
@@ -59,7 +59,7 @@ Execute the following command with the weight parameter file and the image file 
 The resulting image will be saved as `result.png`.
 
 ```
-python pose_detector.py posenet models/coco_posenet.npz --img data/person.png 
+python pose_detector.py posenet models/coco_posenet.npz --img data/person.png
 ```
 
 
@@ -80,7 +80,7 @@ Similarly, execute the following command for face estimation.
 The resulting image will be saved as `result.png`.
 
 ```
-python face_detector.py facenet models/facenet.npz --img data/face.png 
+python face_detector.py facenet models/facenet.npz --img data/face.png
 ```
 
 
@@ -95,7 +95,7 @@ Similarly, execute the following command for hand estimation.
 The resulting image will be saved as `result.png`.
 
 ```
-python hand_detector.py handnet models/handnet.npz --img data/hand.png 
+python hand_detector.py handnet models/handnet.npz --img data/hand.png
 ```
 
 <div align="center">
@@ -136,7 +136,7 @@ python camera_face_demo.py
 
 
 ## Train your model
-This is a full scratch training procedure using COCO 2017 dataset.
+This is a training procedure using COCO 2017 dataset.
 
 
 ### Download COCO 2017 dataset
@@ -191,7 +191,7 @@ python train_coco_pose_estimation.py --gpu 0
 Execute the following command with your own trained weight parameter file and the image file as arguments for inference. The resulting image will be saved as `result.png`.
 
 ```
-python pose_detector.py posenet model_iter_1000 --img data/person.png 
+python pose_detector.py posenet model_iter_1000 --img data/person.png
 ```
 
 
@@ -212,6 +212,3 @@ Please cite the original paper in your publications if it helps your research:
       booktitle = {The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)},
       year = {2017}
       }
-
-
-
