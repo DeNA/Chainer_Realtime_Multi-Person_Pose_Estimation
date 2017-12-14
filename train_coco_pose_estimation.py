@@ -177,10 +177,10 @@ if __name__ == '__main__':
         val_loader, args.valbatchsize, n_processes=args.loaderjob, repeat=False, shuffle=False)
 
     # Set up an optimizer
-    optimizer = optimizers.MomentumSGD(lr=4e-5, momentum=0.9)
-    # optimizer = optimizers.Adam(alpha=1e-4, beta1=0.9, beta2=0.999, eps=1e-08)
+    # optimizer = optimizers.MomentumSGD(lr=4e-5, momentum=0.9)
+    optimizer = optimizers.Adam(alpha=1e-4, beta1=0.9, beta2=0.999, eps=1e-08)
     optimizer.setup(model)
-    optimizer.add_hook(chainer.optimizer.WeightDecay(5e-4))
+    # optimizer.add_hook(chainer.optimizer.WeightDecay(5e-4))
 
     # Set up a trainer
     updater = Updater(train_iter, model, optimizer, device=args.gpu)
