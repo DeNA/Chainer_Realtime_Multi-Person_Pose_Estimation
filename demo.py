@@ -24,7 +24,7 @@ if __name__ == '__main__':
 
     # inference
     print("Estimating pose...")
-    person_pose_array = pose_detector(img)
+    person_pose_array, _ = pose_detector(img)
     res_img = cv2.addWeighted(img, 0.6, draw_person_pose(img, person_pose_array), 0.4, 0)
 
     # each person detected

@@ -25,7 +25,7 @@ if __name__ == '__main__':
             print("Failed to capture image")
             break
 
-        person_pose_array = pose_detector(img, fast_mode=True)
+        person_pose_array, _ = pose_detector(img, fast_mode=True)
         res_img = cv2.addWeighted(img, 0.6, draw_person_pose(img, person_pose_array), 0.4, 0)
         cv2.imshow("result", res_img)
         cv2.waitKey(1)
