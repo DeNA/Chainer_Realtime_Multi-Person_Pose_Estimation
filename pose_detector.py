@@ -558,7 +558,7 @@ if __name__ == '__main__':
     parser.add_argument('weights', help='weights file path')
     parser.add_argument('--img', '-i', default=None, help='image file path')
     parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
-    parser.add_argument('--precise', action='store_true', help='visualize results')
+    parser.add_argument('--precise', action='store_true', help='do precise inference')
     args = parser.parse_args()
 
     chainer.config.enable_backprop = False
