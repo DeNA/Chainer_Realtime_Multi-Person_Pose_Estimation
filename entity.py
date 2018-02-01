@@ -1,8 +1,10 @@
 from enum import IntEnum
 
 from models.CocoPoseNet import CocoPoseNet
+
 from models.FaceNet import FaceNet
 from models.HandNet import HandNet
+
 
 class JointType(IntEnum):
     """関節の種類を表す """
@@ -50,26 +52,36 @@ params = {
         'facenet': FaceNet,
         'handnet': HandNet,
     },
-    'paf_sigma': 1.3,
-    'heatmap_sigma': 1.5,
-    'crop_iob_thresh': 0.4,
-    'crop_size': 480,
-    'input_size': 368,
+    # training params
+    'min_keypoints': 5,
+    'min_area': 32 * 32,
+    'insize': 368,
     'downscale': 8,
+    'paf_sigma': 8,
+    'heatmap_sigma': 7,
 
+    'min_box_size': 64,
+    'max_box_size': 512,
+    'min_scale': 0.5,
+    'max_scale': 2.0,
+    'max_rotate_degree': 40,
+    'center_perterb_max': 40,
+
+    # inference params
     'inference_img_size': 368,
-    #'inference_scales': [0.5, 1.0, 1.5],
-    'inference_scales': [1.0],
+    'inference_scales': [0.5, 1, 1.5, 2],
+    # 'inference_scales': [1.0],
     'heatmap_size': 320,
     'gaussian_sigma': 2.5,
     'ksize': 17,
-    'n_integ_points': 10,       # 1つのconnectionを10等分して積分計算
-    'n_integ_points_thresh': 8, # 1つのconnectionで最低8点以上が閾値を超えた場合に有効
-    'heatmap_peak_thresh': 0.1,
+    'n_integ_points': 10,
+    'n_integ_points_thresh': 8,
+    'heatmap_peak_thresh': 0.05,
     'inner_product_thresh': 0.05,
-    'length_penalty_ratio': 0.5,
-    'n_subset_limbs_thresh': 7,
-    'subset_score_thresh': 0.4,
+    'limb_length_ratio': 1.0,
+    'length_penalty_value': 1,
+    'n_subset_limbs_thresh': 3,
+    'subset_score_thresh': 0.2,
     'limbs_point': [
         [JointType.Neck, JointType.RightWaist],
         [JointType.RightWaist, JointType.RightKnee],
