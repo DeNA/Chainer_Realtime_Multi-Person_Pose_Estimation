@@ -25,14 +25,16 @@ def crop_face(img, rect):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Face detector')
-    parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
+    parser.add_argument('--gpu', '-g', type=int, default=0, help='GPU ID (negative value indicates CPU)')
+    parser.add_argument('--camera', '-c', type=int, default=2, help='Camera device ID (default is set to 2) check with `v4l2-ctl -d /dev/video0 --list-formats`')
     args = parser.parse_args()
 
     # load model
+    cam_id = args.camera
     face_detector = FaceDetector("facenet", "models/facenet.npz", device=args.gpu)
     cascade = cv2.CascadeClassifier("models/haarcascade_frontalface_alt.xml")
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(cam_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 

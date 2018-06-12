@@ -7,13 +7,15 @@ chainer.using_config('enable_backprop', False)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Pose detector')
-    parser.add_argument('--gpu', '-g', type=int, default=-1, help='GPU ID (negative value indicates CPU)')
+    parser.add_argument('--gpu', '-g', type=int, default=0, help='GPU ID (negative value indicates CPU)')
+    parser.add_argument('--camera', '-c', type=int, default=2, help='Camera device ID (default is set to 2) check with `v4l2-ctl -d /dev/video0 --list-formats`')
     args = parser.parse_args()
 
     # load model
+    cam_id = args.camera
     pose_detector = PoseDetector("posenet", "models/coco_posenet.npz", device=args.gpu)
 
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(cam_id)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
